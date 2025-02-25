@@ -25,7 +25,44 @@ const formState = createFormState({
   currentStep: 1, // sync current step in form state
 });
 
-// Handler for custom input changes
+// Create a map of data-input elements to their corresponding values
+const inputMap = {};
+
+// Function to initialize the input map by finding all elements with data-input attribute
+const initializeInputMap = () => {
+  document.querySelectorAll("[data-input]").forEach((element) => {
+    const inputKey = element.getAttribute("data-input");
+    if (inputKey) {
+      // Store the element reference in the map
+      inputMap[inputKey] = element;
+
+      // Initialize the formState with any existing values
+      if (element.value) {
+        formState[inputKey] = element.value;
+      }
+    }
+  });
+  console.log("Input map initialized:", Object.keys(inputMap));
+};
+
+// Handler for data-input changes
+const handleInputChange = (e) => {
+  const element = e.target;
+  const inputKey = element.getAttribute("data-input");
+  if (inputKey) {
+    formState[inputKey] = element.value;
+  }
+};
+
+// Attach event listeners to inputs with the data-input attribute
+const attachInputListeners = () => {
+  document
+    .querySelectorAll("[data-input]")
+    .forEach((input) => input.addEventListener("input", handleInputChange));
+  console.log("Input listeners attached");
+};
+
+// Handler for custom input changes (keep for backward compatibility)
 const handleCustomChange = (e) => {
   const key = e.target.getAttribute("name");
   const value = e.target.value;
@@ -107,7 +144,7 @@ const handleStepNavigation = (e) => {
     formStepState.currentStep--;
   }
   showStep(formStepState.currentStep);
-  console.log("data", formState);
+  console.log("Current form data:", formState);
 };
 
 // Attach event listeners for next and back navigation
@@ -117,6 +154,10 @@ document
 
 // ===== Initialize Step on Load =====
 document.addEventListener("DOMContentLoaded", () => {
+  // Initialize the input map and attach listeners
+  initializeInputMap();
+  attachInputListeners();
+
   // Check if the URL contains a step query parameter
   const queryStep = Number(getQueryParam("step"));
   if (queryStep && queryStep >= 1 && queryStep <= 5) {
@@ -127,16 +168,25 @@ document.addEventListener("DOMContentLoaded", () => {
   showStep(formStepState.currentStep);
 });
 
+// Function to get all form data (for API submission)
+const getFormData = () => {
+  // Return a copy of the current formState
+  return { ...formState };
+};
+
 // ===== Form Submission =====
 const handleSubmit = (e) => {
   e.preventDefault();
-  console.log("Submitting form with state:", formState);
+
+  // Get the latest form data
+  const formData = getFormData();
+  console.log("Submitting form with data:", formData);
 
   // Example: Sending the state as a JSON payload via fetch
   fetch("/api/submit", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(formState),
+    body: JSON.stringify(formData),
   })
     .then((response) => {
       if (!response.ok) throw new Error("Network response was not ok");

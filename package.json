@@ -1,0 +1,23 @@
+{
+  "name": "bgb-form",
+  "version": "1.0.0",
+  "description": "bgb lead form",
+  "homepage": "https://github.com/digitalshane/bgb-form#readme",
+  "bugs": {
+    "url": "https://github.com/digitalshane/bgb-form/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/digitalshane/bgb-form.git"
+  },
+  "license": "ISC",
+  "author": "digitalshane",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@googlemaps/js-api-loader": "^1.16.8"
+  }
+}

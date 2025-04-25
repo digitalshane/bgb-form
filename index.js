@@ -1,15 +1,23 @@
+import { createToast } from "./toast.js";
+import { createValidator } from "./validation.js";
+import { initPlacesAutocomplete } from "./autocomplete.js";
+
 // ===== Form State Management =====
-///changes
-// Factory function to create a reactive form state using Proxy
+
+// Factory function to create a reactive form state using Proxy with persistence
 const createFormState = (initialState = {}) => {
+  const savedState = localStorage.getItem("formState");
+  const startingState = savedState ? JSON.parse(savedState) : initialState;
+
   const handler = {
     set: (target, key, value) => {
       target[key] = value;
-      console.log(`State updated: ${key} = ${value}`);
+      localStorage.setItem("formState", JSON.stringify(target));
+      console.log(`State updated and saved: ${key} = ${value}`);
       return true;
     },
   };
-  return new Proxy({ ...initialState }, handler);
+  return new Proxy({ ...startingState }, handler);
 };
 
 // Initialize state with keys for all form fields and current step (if needed)
@@ -25,6 +33,10 @@ const formState = createFormState({
   currentStep: 1, // sync current step in form state
 });
 
+// Initialize toast and validator after formState creation
+const toast = createToast();
+const validator = createValidator(formState);
+
 // Create a map of data-input elements to their corresponding values
 const inputMap = {};
 
@@ -33,16 +45,28 @@ const initializeInputMap = () => {
   document.querySelectorAll("[data-input]").forEach((element) => {
     const inputKey = element.getAttribute("data-input");
     if (inputKey) {
-      // Store the element reference in the map
       inputMap[inputKey] = element;
 
-      // Initialize the formState with any existing values
-      if (element.value) {
+      // Set input value from stored state if it exists
+      if (formState[inputKey]) {
+        element.value = formState[inputKey];
+      }
+      // Otherwise initialize formState with any existing values
+      else if (element.value) {
         formState[inputKey] = element.value;
       }
     }
   });
-  console.log("Input map initialized:", Object.keys(inputMap));
+  console.log(
+    "Input map initialized with stored values:",
+    Object.keys(inputMap)
+  );
+};
+
+// Add a function to clear stored form data (useful for testing or after submission)
+const clearStoredFormData = () => {
+  localStorage.removeItem("formState");
+  console.log("Stored form data cleared");
 };
 
 // Handler for data-input changes
@@ -137,14 +161,26 @@ const handleStepNavigation = (e) => {
   e.preventDefault();
   const direction = e.target.getAttribute("data-alt");
 
-  if (direction === "next" && formStepState.currentStep < 5) {
-    // Changed from 4 to 5
-    formStepState.currentStep++;
+  if (direction === "next") {
+    // Validate current step
+    const { isValid, errors } = validator.validateStep(
+      formStepState.currentStep
+    );
+
+    if (!isValid) {
+      // Show first error in toast
+      toast.error(errors[0]);
+      return;
+    }
+
+    if (formStepState.currentStep < 5) {
+      formStepState.currentStep++;
+    }
   } else if (direction === "back" && formStepState.currentStep > 1) {
     formStepState.currentStep--;
   }
+
   showStep(formStepState.currentStep);
-  console.log("Current form data:", formState);
 };
 
 // Attach event listeners for next and back navigation
@@ -175,14 +211,25 @@ const getFormData = () => {
 };
 
 // ===== Form Submission =====
+// Update handleSubmit to include validation
 const handleSubmit = (e) => {
   e.preventDefault();
 
-  // Get the latest form data
+  // Validate all steps
+  let allErrors = [];
+  for (let step = 1; step <= 5; step++) {
+    const { errors } = validator.validateStep(step);
+    allErrors = [...allErrors, ...errors];
+  }
+
+  if (allErrors.length > 0) {
+    toast.error(allErrors[0]); // Show first error
+    return;
+  }
+
   const formData = getFormData();
   console.log("Submitting form with data:", formData);
 
-  // Example: Sending the state as a JSON payload via fetch
   fetch("/api/submit", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -192,8 +239,15 @@ const handleSubmit = (e) => {
       if (!response.ok) throw new Error("Network response was not ok");
       return response.json();
     })
-    .then((data) => console.log("Form submitted successfully:", data))
-    .catch((error) => console.error("Form submission error:", error));
+    .then((data) => {
+      console.log("Form submitted successfully:", data);
+      clearStoredFormData();
+      toast.success("Form submitted successfully!");
+    })
+    .catch((error) => {
+      console.error("Form submission error:", error);
+      toast.error("Failed to submit form. Please try again.");
+    });
 };
 
 // Attach submit handler to element with data-alt="submit"
@@ -203,3 +257,17 @@ document
 
 // Keep the form submit handler too (if needed)
 document.addEventListener("submit", handleSubmit);
+
+document.addEventListener("DOMContentLoaded", () => {
+  initializeInputMap();
+  attachInputListeners();
+  initPlacesAutocomplete(formState); // Initialize Places Autocomplete
+
+  // Show initial step
+  const queryStep = Number(getQueryParam("step"));
+  if (queryStep && queryStep >= 1 && queryStep <= 5) {
+    formStepState.currentStep = queryStep;
+  }
+  formState.currentStep = formStepState.currentStep;
+  showStep(formStepState.currentStep);
+});

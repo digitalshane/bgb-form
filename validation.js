@@ -2,7 +2,7 @@
 export const createValidator = (formState) => {
   const validateField = (inputElement) => {
     const value = inputElement.value.trim();
-    const fieldName = inputElement.getAttribute("data-input");
+    const fieldName = inputElement.getAttribute("data-label");
 
     // Check if empty
     if (value === "") {

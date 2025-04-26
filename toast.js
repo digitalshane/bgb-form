@@ -5,7 +5,7 @@ export const createToast = () => {
   style.textContent = `
     .toast-container {
       position: fixed;
-      top: 20px;
+      top: 80%;
       right: 20px;
       z-index: 9999;
     }

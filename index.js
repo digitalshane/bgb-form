@@ -217,38 +217,31 @@ const getFormData = () => {
 const handleSubmit = (e) => {
   e.preventDefault();
 
-  // Validate all steps
-  let allErrors = [];
-  for (let step = 1; step <= 5; step++) {
-    const { errors } = validator.validateStep(step);
-    allErrors = [...allErrors, ...errors];
-  }
-
-  if (allErrors.length > 0) {
-    toast.error(allErrors[0]); // Show first error
-    return;
-  }
-
   const formData = getFormData();
-  console.log("Submitting form with data:", formData);
 
-  fetch("/api/submit", {
+  fetch("https://form-handler.clients-248.workers.dev/", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify(formData),
   })
-    .then((response) => {
-      if (!response.ok) throw new Error("Network response was not ok");
-      return response.json();
-    })
+    .then((response) => response.json())
     .then((data) => {
-      console.log("Form submitted successfully:", data);
-      clearStoredFormData();
-      toast.success("Form submitted successfully!");
+      if (data.success) {
+        toast.success("Form submitted successfully!");
+        clearStoredFormData();
+
+        // If you want to show the ChatGPT analysis
+        if (data.analysis) {
+          console.log("AI Analysis:", data.analysis);
+        }
+      } else {
+        throw new Error(data.error || "Submission failed");
+      }
     })
     .catch((error) => {
-      console.error("Form submission error:", error);
-      toast.error("Failed to submit form. Please try again.");
+      toast.error("Failed to submit form: " + error.message);
     });
 };
 

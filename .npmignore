@@ -1,0 +1,10 @@
+# Ignore the entire form-handler directory
+form-handler/
+
+.node_modules
+.DS_Store
+.env
+.vscode
+.form-handler
+# Ignore the build directory
+*.log

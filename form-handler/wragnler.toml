@@ -1,0 +1,7 @@
+name = "form-handler"
+main = "src/index.js"
+compatibility_date = "2024-04-26"
+
+routes = [
+  { pattern = "api.bgboutdoor.com", custom_domain = true }
+]

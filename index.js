@@ -168,13 +168,15 @@ const handleStepNavigation = (e) => {
     );
 
     if (!isValid) {
-      // Show first error in toast
-      toast.error(errors[0]);
+      // Show which fields are missing
+      const errorMessage = `Please fill in: ${errors.join(", ")}`;
+      toast.error(errorMessage);
       return;
     }
 
     if (formStepState.currentStep < 5) {
       formStepState.currentStep++;
+      toast.success("Step completed successfully!");
     }
   } else if (direction === "back" && formStepState.currentStep > 1) {
     formStepState.currentStep--;

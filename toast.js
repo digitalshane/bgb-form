@@ -1,7 +1,46 @@
 // toast.js
-
 export const createToast = () => {
-  // Create toast container if it doesn't exist
+  // First create the toast container style
+  const style = document.createElement("style");
+  style.textContent = `
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+    }
+    .toast {
+      min-width: 250px;
+      margin: 10px;
+      padding: 15px;
+      border-radius: 4px;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      animation: slideIn 0.3s ease-in-out;
+    }
+    .toast-error {
+      background-color: #f44336;
+    }
+    .toast-success {
+      background-color: #4CAF50;
+    }
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+
+  // Create toast container
   let toastContainer = document.querySelector(".toast-container");
   if (!toastContainer) {
     toastContainer = document.createElement("div");
@@ -14,25 +53,15 @@ export const createToast = () => {
       const toast = document.createElement("div");
       toast.className = `toast toast-${type}`;
       toast.innerHTML = `
-        <div class="toast-content">
-          ${message}
-          <button class="toast-close">&times;</button>
-        </div>
+        <span>${message}</span>
+        <span style="margin-left: 10px; cursor: pointer;" onclick="this.parentElement.remove()">×</span>
       `;
-
-      // Add close button functionality
-      const closeBtn = toast.querySelector(".toast-close");
-      closeBtn.addEventListener("click", () => {
-        toast.classList.add("toast-hide");
-        setTimeout(() => toast.remove(), 300);
-      });
 
       toastContainer.appendChild(toast);
 
-      // Auto remove after 5 seconds
+      // Remove after 5 seconds
       setTimeout(() => {
-        toast.classList.add("toast-hide");
-        setTimeout(() => toast.remove(), 300);
+        toast.remove();
       }, 5000);
     },
 
@@ -42,10 +71,6 @@ export const createToast = () => {
 
     success(message) {
       this.show(message, "success");
-    },
-
-    warning(message) {
-      this.show(message, "warning");
     },
   };
 };

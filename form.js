@@ -13,7 +13,7 @@ export function initForm() {
   /* ===== Form State Management ===== */
 
   const createFormState = (initialState = {}) => {
-    const saved = localStorage.getItem("formState");
+    const saved = sessionStorage.getItem("formState");
     const base = saved ? JSON.parse(saved) : initialState;
 
     return new Proxy(
@@ -21,7 +21,7 @@ export function initForm() {
       {
         set(target, key, value) {
           target[key] = value;
-          localStorage.setItem("formState", JSON.stringify(target));
+          sessionStorage.setItem("formState", JSON.stringify(target));
           return true;
         },
       }
@@ -194,7 +194,7 @@ export function initForm() {
   /* ===== Submission ===== */
 
   const clearStoredFormData = () => {
-    localStorage.removeItem("formState");
+    sessionStorage.removeItem("formState");
     console.log("Stored form data cleared");
   };
 

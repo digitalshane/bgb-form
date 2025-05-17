@@ -1,0 +1,27 @@
+/* Make the calendar popup wider */
+.flatpickr-calendar {
+  min-width: 300px;
+}
+
+/* Change the header bar’s background */
+.flatpickr-months .flatpickr-month {
+  background-color: #405c41;
+  color: white;
+}
+
+/* Style the days */
+.flatpickr-day {
+  border-radius: 0;
+  line-height: 2.5em;
+}
+.flatpickr-day:hover {
+  background: rgba(74, 144, 226, 0.1);
+}
+
+/* Highlight selected */
+.flatpickr-day.selected,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange {
+  background: #3f2f34 !important;
+  color: white !important;
+}
